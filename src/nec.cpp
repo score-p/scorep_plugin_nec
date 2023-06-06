@@ -34,13 +34,11 @@
 
 #include <scorep/plugin/plugin.hpp>
 
-extern "C"
-{
 #include <veda/api.h>
-}
 
 using TVPair = std::pair<scorep::chrono::ticks, double>;
 
+using scorep::plugin::logging;
 class NecMeasurementThread
 {
 public:
@@ -96,16 +94,18 @@ using namespace scorep::plugin::policy;
 class nec_plugin : public scorep::plugin::base<nec_plugin, async, once, scorep_clock>
 {
 public:
+
     nec_plugin()
     {
-        vedaInit(0);
-        vedaDeviceGet(&device_, 0);
-    }
-    ~nec_plugin()
-    {
-        vedaExit();
+	    vedaInit(0);
+	    vedaDeviceGet(&device_, 0);
     }
 
+    ~nec_plugin()
+    {
+	    vedaExit();
+    }
+	
     std::vector<scorep::plugin::metric_property>
     get_metric_properties(const std::string& metric_name)
     {
@@ -117,6 +117,8 @@ public:
 
     int32_t add_metric(const std::string& event)
     {
+	logging::warn() << "Adding counter \"" << event << "\"";
+
         int32_t id = sensors_.size();
         sensors_.emplace_back(get_sensor_by_name(event));
         return id;
@@ -158,10 +160,15 @@ private:
         {
             return NecPowerSensor(device_, 0);
         }
+	else
+	{
+		logging::warn() << "Ignoring Invalid metric: " << name;
+		return NecSensor();
+	}
     }
 
+    VEDAdevice device_;
     NecMeasurementThread nec;
-    VEDADevice device_;
     std::thread measurement_thread_;
 
     std::vector<NecSensor> sensors_;

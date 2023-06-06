@@ -28,26 +28,46 @@
 // #include <veda/api.h>
 #include <fmt/core.h>
 
+#include <veda/api.h>
+
 class NecSensor
 {
 public:
-    NecSensor(VEDADevice& dev, int id) dev_(dev), id_(id)
+    NecSensor() : dev_(0), id_(0)
     {
     }
-    virtual std::string name();
-    virtual std::string unit();
-    virtual std::string description();
-    virtual double value();
+    NecSensor(VEDAdevice dev, int id) : dev_(dev), id_(id)
+    {
+    }
+    virtual std::string name()
+    {
+	    return "";
+    }
+    virtual std::string unit()
+    {
+	    return "";
+    }
+    virtual std::string description()
+    {
+	 return "";
+    }
+    virtual double value()
+    {
+	    return 0;
+    }
 
 protected:
-    VEDADevice& dev_;
+    VEDAdevice dev_;
     int id_;
 };
 
 class NecPowerSensor : public NecSensor
 {
 public:
-    NecPowerSensor(VEDADevice& dev, int id) : NecSensor(dev, id)
+    NecPowerSensor() : NecSensor()
+	{
+	}
+    NecPowerSensor(VEDAdevice dev, int id) : NecSensor(dev, id)
     {
     }
 
@@ -67,5 +87,10 @@ public:
         vedaDeviceGetPower(&power, dev_);
 
         return power;
+    }
+
+    std::string unit() override
+    {
+	     return "Watt";
     }
 };

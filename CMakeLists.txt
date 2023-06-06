@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(nec_plugin)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(PLUGIN_SOURCE src/nec.cpp)
 
 add_subdirectory(lib/scorep_plugin_cxx_wrapper)
