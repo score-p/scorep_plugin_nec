@@ -42,63 +42,58 @@ using scorep::plugin::logging;
 class NecMeasurementThread
 {
 public:
-    void add_sensors(std::vector<NecSensor> sensors)
+    void add_sensor(NecSensor sensor)
     {
-        assert(sensors_.empty());
-
-        sensors_ = sensors;
-
-        for (const auto& sensor : sensors_)
-        {
-            values_.emplace_back(std::vector<TVPair>());
-        }
+          	sensors_.emplace(sensor, std::vector<TVPair>());
     }
 
     void measurement()
     {
         while (!stop_)
         {
-            std::lock_guard<std::mutex> lock(read_mutex_);
-            int i = 0;
             for (auto& sensor : sensors_)
             {
-                values_[i].emplace_back(scorep::chrono::measurement_clock::now(), sensor.value());
-                i++;
+            	    std::lock_guard<std::mutex> lock(read_mutex_);
+		    sensor.second.emplace_back(scorep::chrono::measurement_clock::now(), sensor.first.value());
             }
+	    std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+	logging::warn() << "Stopped!";
     }
 
     void stop_measurement()
     {
+	logging::warn() << "stop_measurement called!";
         std::lock_guard<std::mutex> lock(read_mutex_);
         stop_ = true;
     }
 
-    std::vector<TVPair> get_values_for_id(int32_t id)
+    std::vector<TVPair> get_values_for_sensor(NecSensor sensor)
     {
         std::lock_guard<std::mutex> lock(read_mutex_);
-        auto ret = values_[id];
-        values_[id].clear();
+        auto ret = sensors_[sensor];
+        sensors_[sensor].clear();
         return ret;
     }
 
 private:
     bool stop_ = false;
-    std::vector<NecSensor> sensors_;
     std::mutex read_mutex_;
-    std::vector<std::vector<TVPair>> values_;
+    std::map<NecSensor,std::vector<TVPair>> sensors_;
 };
 
 using namespace scorep::plugin::policy;
 
-class nec_plugin : public scorep::plugin::base<nec_plugin, async, once, scorep_clock>
+template <typename T, typename Policies>
+using nec_object_id = object_id<NecSensor, T, Policies>;
+
+class nec_plugin : public scorep::plugin::base<nec_plugin, async, once, scorep_clock, nec_object_id>
 {
 public:
 
     nec_plugin()
     {
 	    vedaInit(0);
-	    vedaDeviceGet(&device_, 0);
     }
 
     ~nec_plugin()
@@ -109,25 +104,34 @@ public:
     std::vector<scorep::plugin::metric_property>
     get_metric_properties(const std::string& metric_name)
     {
-        NecSensor sensor = get_sensor_by_name(metric_name);
-        return { scorep::plugin::metric_property(sensor.name(), sensor.description(), sensor.unit())
+	logging::warn() << "Adding counter \"" << metric_name << "\"";
+
+	try
+	{
+		NecSensor sensor = get_sensor_by_name(metric_name);
+	logging::warn() << "NAME" << sensor.name();
+	make_handle(metric_name, 0);
+	nec.add_sensor(sensor);
+	
+	return { scorep::plugin::metric_property(sensor.name(), sensor.description(), sensor.unit())
                      .absolute_point()
                      .value_double() };
+	}
+	catch (std::runtime_error &e)
+	{
+		return {};
+	}
     }
 
-    int32_t add_metric(const std::string& event)
+    void add_metric(NecSensor& f)
     {
-	logging::warn() << "Adding counter \"" << event << "\"";
 
-        int32_t id = sensors_.size();
-        sensors_.emplace_back(get_sensor_by_name(event));
-        return id;
     }
 
     template <typename C>
-    void get_all_values(int32_t id, C& cursor)
+    void get_all_values(NecSensor& f, C& cursor)
     {
-        std::vector<TVPair> values = nec.get_values_for_id(id);
+        std::vector<TVPair> values = nec.get_values_for_sensor(f);
 
         for (auto& value : values)
         {
@@ -137,8 +141,6 @@ public:
 
     void start()
     {
-        nec.add_sensors(sensors_);
-
         measurement_thread_ = std::thread([this]() { this->nec.measurement(); });
     }
 
@@ -158,20 +160,18 @@ private:
     {
         if (name == "power")
         {
-            return NecPowerSensor(device_, 0);
+            return NecPowerSensor(0);
         }
 	else
 	{
 		logging::warn() << "Ignoring Invalid metric: " << name;
-		return NecSensor();
+		throw std::runtime_error("Invalid sensor");
 	}
     }
 
-    VEDAdevice device_;
     NecMeasurementThread nec;
     std::thread measurement_thread_;
 
-    std::vector<NecSensor> sensors_;
 };
 
 SCOREP_METRIC_PLUGIN_CLASS(nec_plugin, "nec")
