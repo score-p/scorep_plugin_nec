@@ -56,26 +56,26 @@ public:
         {
             return fmt::format("ve{}::power", id_);
         }
-	else if(type_ == SensorType::CURRENT)
-	{
-	    return fmt::format("ve{}::current", id_);
-	}
-	else if(type_ == SensorType::CURRENT_EDGE)
-	{
-		return fmt::format("ve{}::current_edge", id_);
-	}
-	else if(type_ == SensorType::VOLTAGE)
-	{
-		return fmt::format("ve{}::voltage", id_);
-	}
-	else if(type_ == SensorType::VOLTAGE_EDGE)
-	{
-		return fmt::format("ve{}::voltage_edge", id_);
-	}
-	else if(type_ == SensorType::TEMPERATURE)
-	{
-		return fmt::format("ve{}::temp::core{}", id_, core_);
-	}
+        else if (type_ == SensorType::CURRENT)
+        {
+            return fmt::format("ve{}::current", id_);
+        }
+        else if (type_ == SensorType::CURRENT_EDGE)
+        {
+            return fmt::format("ve{}::current_edge", id_);
+        }
+        else if (type_ == SensorType::VOLTAGE)
+        {
+            return fmt::format("ve{}::voltage", id_);
+        }
+        else if (type_ == SensorType::VOLTAGE_EDGE)
+        {
+            return fmt::format("ve{}::voltage_edge", id_);
+        }
+        else if (type_ == SensorType::TEMPERATURE)
+        {
+            return fmt::format("ve{}::temp::core{}", id_, core_);
+        }
         else
         {
             throw std::runtime_error("Invalid sensor!");
@@ -87,26 +87,26 @@ public:
         {
             return "Watt";
         }
-	else if(type_ == SensorType::CURRENT)
-	{
-		return "Ampere";
-	}
-	else if(type_ == SensorType::CURRENT_EDGE)
-	{
-		return "Ampere";
-	}
-	else if(type_ == SensorType::VOLTAGE)
-	{
-		return "Volt";
-	}
-	else if(type_ == SensorType::VOLTAGE_EDGE)
-	{
-		return "Volt";
-	}
-	else if(type_ == SensorType::TEMPERATURE)
-	{
-		return "Celsius";
-	}
+        else if (type_ == SensorType::CURRENT)
+        {
+            return "Ampere";
+        }
+        else if (type_ == SensorType::CURRENT_EDGE)
+        {
+            return "Ampere";
+        }
+        else if (type_ == SensorType::VOLTAGE)
+        {
+            return "Volt";
+        }
+        else if (type_ == SensorType::VOLTAGE_EDGE)
+        {
+            return "Volt";
+        }
+        else if (type_ == SensorType::TEMPERATURE)
+        {
+            return "Celsius";
+        }
         else
         {
             throw std::runtime_error("Invalid sensor!");
@@ -118,27 +118,27 @@ public:
         {
             return fmt::format("Vector Engine {} Power Consumption", id_);
         }
-	else if(type_ == SensorType::CURRENT)
-	{
-		return fmt::format("Vector Engine {} Current Draw", id_);
-	}
-	else if(type_ == SensorType::CURRENT_EDGE)
-	{
-		return fmt::format("Vector Engine {} Current Edge", id_);
-	}
-	else if(type_ == SensorType::VOLTAGE)
-	{
-		return fmt::format("Vector Engine {} Voltage", id_);
-	}
-	else if(type_ == SensorType::VOLTAGE_EDGE)
-	{
-		return fmt::format("Vector Engine {} Voltage Edge", id_);
-	}
-	else if(type_ == SensorType::TEMPERATURE)
-	{
-		return fmt::format("Vector Engine {} Core {} Temperature", id_, core_);
-	}
-	else
+        else if (type_ == SensorType::CURRENT)
+        {
+            return fmt::format("Vector Engine {} Current Draw", id_);
+        }
+        else if (type_ == SensorType::CURRENT_EDGE)
+        {
+            return fmt::format("Vector Engine {} Current Edge", id_);
+        }
+        else if (type_ == SensorType::VOLTAGE)
+        {
+            return fmt::format("Vector Engine {} Voltage", id_);
+        }
+        else if (type_ == SensorType::VOLTAGE_EDGE)
+        {
+            return fmt::format("Vector Engine {} Voltage Edge", id_);
+        }
+        else if (type_ == SensorType::TEMPERATURE)
+        {
+            return fmt::format("Vector Engine {} Core {} Temperature", id_, core_);
+        }
+        else
         {
             throw std::runtime_error("Invalid sensor!");
         }
@@ -152,32 +152,32 @@ public:
             vedaDeviceGetPower(&value, dev_);
             return value;
         }
-	else if (type_ == SensorType::CURRENT)
-	{
-		vedaDeviceGetCurrent(&value, dev_);
-		return value;
-	}
-	else if(type_ == SensorType::CURRENT_EDGE)
-	{
-		vedaDeviceGetCurrentEdge(&value, dev_);
-		return value;
-	}
-	else if(type_ == SensorType::VOLTAGE)
-	{
-		vedaDeviceGetVoltage(&value, dev_);
-		return value;
-	}
-	else if(type_ == SensorType::VOLTAGE_EDGE)
-	{
-		vedaDeviceGetVoltageEdge(&value, dev_);
-		return value;
-	}
-	else if(type_ == SensorType::TEMPERATURE)
-	{
-		vedaDeviceGetTemp(&value, core_, dev_);
-		return value;
-	}
-	else
+        else if (type_ == SensorType::CURRENT)
+        {
+            vedaDeviceGetCurrent(&value, dev_);
+            return value;
+        }
+        else if (type_ == SensorType::CURRENT_EDGE)
+        {
+            vedaDeviceGetCurrentEdge(&value, dev_);
+            return value;
+        }
+        else if (type_ == SensorType::VOLTAGE)
+        {
+            vedaDeviceGetVoltage(&value, dev_);
+            return value;
+        }
+        else if (type_ == SensorType::VOLTAGE_EDGE)
+        {
+            vedaDeviceGetVoltageEdge(&value, dev_);
+            return value;
+        }
+        else if (type_ == SensorType::TEMPERATURE)
+        {
+            vedaDeviceGetTemp(&value, core_, dev_);
+            return value;
+        }
+        else
         {
             throw std::runtime_error("Invalid sensor!");
         }
@@ -187,29 +187,30 @@ public:
     {
         if (lhs.type_ == rhs.type_)
         {
-		if(lhs.id_ == rhs.id_)
-		{
-			return lhs.core_ < rhs.core_;
-		}
+            if (lhs.id_ == rhs.id_)
+            {
+                return lhs.core_ < rhs.core_;
+            }
             return lhs.id_ < rhs.id_;
         }
         return lhs.type_ < rhs.type_;
-   }
+    }
 
     friend bool operator==(const NecSensor& lhs, const NecSensor& rhs)
     {
-	return lhs.type_ == rhs.type_ && lhs.id_ == rhs.id_ && lhs.core_ == rhs.core_;
+        return lhs.type_ == rhs.type_ && lhs.id_ == rhs.id_ && lhs.core_ == rhs.core_;
     }
 
     bool invalid() const
     {
-	    return type_ == SensorType::INVALID;
+        return type_ == SensorType::INVALID;
     }
 
     SensorType type() const
     {
-	    return type_;
+        return type_;
     }
+
 protected:
     SensorType type_;
     int id_;

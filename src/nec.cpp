@@ -27,8 +27,8 @@
 
 #include <cassert>
 #include <mutex>
-#include <thread>
 #include <regex>
+#include <thread>
 #include <vector>
 
 #include <scorep_plugin_nec/nec_sensors.hpp>
@@ -103,119 +103,119 @@ public:
     std::vector<scorep::plugin::metric_property>
     get_metric_properties(const std::string& metric_name)
     {
-	std::vector<scorep::plugin::metric_property> sensors;
+        std::vector<scorep::plugin::metric_property> sensors;
 
-	std::regex sensor_regex("ve([0-9*]+)::(\\w+)(::core([0-9*]+))?");
-	std::smatch sensor_match;
+        std::regex sensor_regex("ve([0-9*]+)::(\\w+)(::core([0-9*]+))?");
+        std::smatch sensor_match;
 
-	std::vector<int> devices;
-	std::vector<int> cores; 
-	
-	if(std::regex_match(metric_name, sensor_match, sensor_regex))
-	{
-		int count;
-		vedaDeviceGetCount(&count);
+        std::vector<int> devices;
+        std::vector<int> cores;
 
-		if(sensor_match[1] == "*")
-		{
-			for(int id = 0; id < count; id++)
-			{
-				devices.emplace_back(id);
-			}
-		}
-		else
-		{
-			try
-			{
-				int id = std::stoi(sensor_match[1]);
-			
-				if(id < 0 || id >= count)
-				{
-					logging::warn() << "Invalid device id " << id << " given, ignoring event";
-					return {};
-				}
-				devices.emplace_back(id);
-			}
-			catch (std::exception &e)
-			{
-					logging::warn() << "Invalid device id " << sensor_match[1] << " given, ignoring event";
-					return {};
-			}
-		}
+        if (std::regex_match(metric_name, sensor_match, sensor_regex))
+        {
+            int count;
+            vedaDeviceGetCount(&count);
 
-		if(!sensor_match[4].str().empty())
-		{
-			int num_cores;
-			//FIXME: Nobody uses irregular configurations of NEC Cards, right?
-			vedaDeviceGetAttribute(&num_cores, VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, 0);
+            if (sensor_match[1] == "*")
+            {
+                for (int id = 0; id < count; id++)
+                {
+                    devices.emplace_back(id);
+                }
+            }
+            else
+            {
+                try
+                {
+                    int id = std::stoi(sensor_match[1]);
 
-			if (sensor_match[4] == "*")
-			{
-				for(int core = 0; core < num_cores; core++)
-				{
-					cores.emplace_back(core);
-				}
-			}
-			else
-			{
-			try
-			{
-				int id = std::stoi(sensor_match[4]);
-			
-				if(id < 0 || id >= num_cores)
-				{
-					logging::warn() << "Invalid core id " << id << " given, ignoring event";
-					return {};
-				}
-				cores.emplace_back(id);
-			}
-			catch (std::exception &e)
-			{
-					logging::warn() << "Invalid core id " << sensor_match[4] << " given, ignoring event";
-					return {};
-			}
+                    if (id < 0 || id >= count)
+                    {
+                        logging::warn() << "Invalid device id " << id << " given, ignoring event";
+                        return {};
+                    }
+                    devices.emplace_back(id);
+                }
+                catch (std::exception& e)
+                {
+                    logging::warn()
+                        << "Invalid device id " << sensor_match[1] << " given, ignoring event";
+                    return {};
+                }
+            }
 
-			}
-		}
-		else if(sensor_match[2] == "temp")
-		{
-			logging::warn() << "Temperature requieres you to specify the measurement core as ve*::temp::core* or ve*::temp::core4";
-			return {};
-		}
-		else
-		{
-			cores.emplace_back(0);
-		}
+            if (!sensor_match[4].str().empty())
+            {
+                int num_cores;
+                // FIXME: Nobody uses irregular configurations of NEC Cards, right?
+                vedaDeviceGetAttribute(&num_cores, VEDA_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, 0);
 
-		for(auto device_id : devices)
-		{
-			for(auto core_id : cores)
-			{
-				auto sensor = get_sensor_by_name(device_id, sensor_match[2], core_id);
+                if (sensor_match[4] == "*")
+                {
+                    for (int core = 0; core < num_cores; core++)
+                    {
+                        cores.emplace_back(core);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        int id = std::stoi(sensor_match[4]);
 
-				if(sensor.invalid())
-				{
-					logging::warn() << "Invalid sensor: " << sensor_match[2] << ", ignored";
-				}
-				
-				sensors.push_back(scorep::plugin::metric_property(sensor.name(), sensor.description(),
-                                                     sensor.unit())
-                         .absolute_point()
-                         .value_double());
-				
-				make_handle(sensor.name(), sensor.type(), device_id, core_id);
-				nec.add_sensor(sensor);
-	
-			}
-		}
-	}
-	else
-	{
-		logging::warn() << "Invalid sensor: " << sensor_match[2] << ", ignored";
-	}
+                        if (id < 0 || id >= num_cores)
+                        {
+                            logging::warn() << "Invalid core id " << id << " given, ignoring event";
+                            return {};
+                        }
+                        cores.emplace_back(id);
+                    }
+                    catch (std::exception& e)
+                    {
+                        logging::warn()
+                            << "Invalid core id " << sensor_match[4] << " given, ignoring event";
+                        return {};
+                    }
+                }
+            }
+            else if (sensor_match[2] == "temp")
+            {
+                logging::warn() << "Temperature requieres you to specify the measurement core as "
+                                   "ve*::temp::core* or ve*::temp::core4";
+                return {};
+            }
+            else
+            {
+                cores.emplace_back(0);
+            }
 
-	return sensors;
+            for (auto device_id : devices)
+            {
+                for (auto core_id : cores)
+                {
+                    auto sensor = get_sensor_by_name(device_id, sensor_match[2], core_id);
 
+                    if (sensor.invalid())
+                    {
+                        logging::warn() << "Invalid sensor: " << sensor_match[2] << ", ignored";
+                    }
+
+                    sensors.push_back(scorep::plugin::metric_property(
+                                          sensor.name(), sensor.description(), sensor.unit())
+                                          .absolute_point()
+                                          .value_double());
+
+                    make_handle(sensor.name(), sensor.type(), device_id, core_id);
+                    nec.add_sensor(sensor);
+                }
+            }
+        }
+        else
+        {
+            logging::warn() << "Invalid sensor: " << sensor_match[2] << ", ignored";
+        }
+
+        return sensors;
     }
 
     void add_metric(NecSensor& f)
@@ -250,34 +250,34 @@ public:
     }
 
 private:
-    NecSensor get_sensor_by_name(int device_id,  std::string name, int core_id = 0)
+    NecSensor get_sensor_by_name(int device_id, std::string name, int core_id = 0)
     {
-	    if(name == "power")
-	    {
-		    return NecSensor(SensorType::POWER, device_id);
-	    }
-	    else if(name == "voltage")
-	    {
-		    return NecSensor(SensorType::VOLTAGE, device_id);
-	    }
-	    else if(name == "voltage_edge")
-	    {
-		    return NecSensor(SensorType::VOLTAGE_EDGE, device_id);
-	    }
-	    else if(name == "current")
-	    {
-		    return NecSensor(SensorType::CURRENT, device_id);
-	    }
-	    else if(name == "current_edge")
-	    {
-		    return NecSensor(SensorType::CURRENT_EDGE, device_id);
-	    }
-	    else if(name == "temp")
-	    {
-		    return NecSensor(SensorType::TEMPERATURE, device_id, core_id);
-	    }
+        if (name == "power")
+        {
+            return NecSensor(SensorType::POWER, device_id);
+        }
+        else if (name == "voltage")
+        {
+            return NecSensor(SensorType::VOLTAGE, device_id);
+        }
+        else if (name == "voltage_edge")
+        {
+            return NecSensor(SensorType::VOLTAGE_EDGE, device_id);
+        }
+        else if (name == "current")
+        {
+            return NecSensor(SensorType::CURRENT, device_id);
+        }
+        else if (name == "current_edge")
+        {
+            return NecSensor(SensorType::CURRENT_EDGE, device_id);
+        }
+        else if (name == "temp")
+        {
+            return NecSensor(SensorType::TEMPERATURE, device_id, core_id);
+        }
 
-	    return NecSensor();
+        return NecSensor();
     }
 
     NecMeasurementThread nec;

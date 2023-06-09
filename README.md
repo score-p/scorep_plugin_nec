@@ -24,10 +24,30 @@ make
 
 ```
 export SCOREP_METRIC_PLUGINS=nec
-export SCOREP_METRIC_NEC_PLUGIN="power,..."
+export SCOREP_METRIC_NEC_PLUGIN="ve0::power,ve*::temp::core*"
 ```
+
+Metrics are given in the form of:
+
+```
+ve[DEVICE_ID]::[METRIC_NAME]
+```
+
+Where `DEVICE_ID` is the number of the device you want to measure (or *, if you want to measure the metric on all available devices) and [METRIC_NAME] is the name of the metric.
+
+Temperature measurements take an additional core parameter
+
+```
+ve[DEVICE_ID]::temp::core[CORE_ID]
+```
+
+Where `CORE_ID` is the ID of the core you want to measure, or * if you want to measure the temperature of all cores.
 
 ## Available Metrics
 
 - power
-- more TBD
+- temp
+- current
+- current_edge
+- voltage
+- voltage_edge
