@@ -30,74 +30,81 @@
 
 #include <veda/api.h>
 
+enum class SensorType
+{
+    INVALID,
+    POWER
+};
+
 class NecSensor
 {
 public:
-    NecSensor() : id_(0)
+    NecSensor() : type_(SensorType::INVALID), id_(0)
     {
     }
-    NecSensor(int id) : id_(id)
+    NecSensor(SensorType type, int id) : type_(type), id_(id)
     {
-	vedaDeviceGet(&dev_, id);    
+        vedaDeviceGet(&dev_, id);
     }
     virtual std::string name() const
     {
-	    return "blaasdf";
+        if (type_ == SensorType::POWER)
+        {
+            return fmt::format("VE{}::power", id_);
+        }
+        else
+        {
+            throw std::runtime_error("Invalid sensor!");
+        }
     }
     virtual std::string unit() const
     {
-	    return "";
+        if (type_ == SensorType::POWER)
+        {
+            return "Watt";
+        }
+        else
+        {
+            throw std::runtime_error("Invalid sensor!");
+        }
     }
     virtual std::string description() const
     {
-	 return "";
+        if (type_ == SensorType::POWER)
+        {
+            return "Vector Engine Power Consumption";
+        }
+        else
+        {
+            throw std::runtime_error("Invalid sensor!");
+        }
     }
-    virtual double value() const
+    double value() const
     {
-	    return 0;
+        float value;
+
+        if (type_ == SensorType::POWER)
+        {
+            vedaDeviceGetPower(&value, dev_);
+            return value;
+        }
+        else
+        {
+            throw std::runtime_error("Invalid sensor!");
+        }
     }
 
-    friend bool operator<(const NecSensor&lhs, const NecSensor&rhs)
+    friend bool operator<(const NecSensor& lhs, const NecSensor& rhs)
     {
-	    return lhs.name() < rhs.name();
+        if (lhs.type_ == rhs.type_)
+        {
+            return lhs.id_ < rhs.id_;
+        }
+        return lhs.type_ < rhs.type_;
     }
 
 protected:
+    SensorType type_;
     int id_;
     VEDAdevice dev_;
-};
-
-class NecPowerSensor : public NecSensor
-{
-public:
-    NecPowerSensor() : NecSensor()
-	{
-	}
-    NecPowerSensor(int id) : NecSensor(id)
-    {
-    }
-
-    std::string name() const override
-    {
-	return "bla";
-        //return fmt::format("VE{}:power", id_);
-    }
-
-    std::string description() const override
-    {
-        return fmt::format("Power consumption of vector engine {}", id_);
-    }
-
-    double value() const override
-    {
-        float power;
-        vedaDeviceGetPower(&power, dev_);
-
-        return power;
-    }
-
-    std::string unit() const override
-    {
-	     return "Watt";
-    }
 };
