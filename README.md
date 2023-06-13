@@ -1,4 +1,4 @@
-# Score-P VEDA Plugin
+# Score-P NEC Plugin
 
 This code provides a Score-P plugin to access the metrics provided by NEC SX Aurora Tsubasa Accelerators.
 
